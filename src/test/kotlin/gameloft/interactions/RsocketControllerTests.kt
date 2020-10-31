@@ -1,7 +1,9 @@
 package gameloft.interactions
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -11,6 +13,8 @@ import org.springframework.messaging.rsocket.RSocketRequester
 import org.springframework.messaging.rsocket.retrieveAndAwait
 import org.springframework.messaging.rsocket.retrieveFlow
 import java.util.*
+import kotlin.concurrent.thread
+import kotlin.system.measureTimeMillis
 
 @SpringBootTest
 class RsocketControllerTests {
@@ -82,5 +86,35 @@ class RsocketControllerTests {
 		}
 	}
 
+	@Test
+	fun withThreads() {
+		val time = measureTimeMillis {
+			List(100_000) {
+				thread {
+					Thread.sleep(1000)
+					println("${Thread.currentThread().name} Executed Thread: $it")
+				}
+			}.forEach {
+				it.join()
+			}
+		}
+		println("Total Time taken: $time")
+	}
 
+	@Test
+	fun withCoroutines() {
+		runBlocking {
+			val time = measureTimeMillis {
+				runBlocking {
+					List(100_000) {
+						launch {
+							delay(1000)
+							println("${Thread.currentThread().name} Executed Job: $it")
+						}
+					}
+				}
+			}
+			println("Total time taken: $time")
+		}
+	}
 }
